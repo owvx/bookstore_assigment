@@ -2,21 +2,29 @@ package com.example.bookstore;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.validation.Validator;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.example.bookstore.controller.BookController;
+import com.example.bookstore.exception.GlobalExceptionHandler;
+
 @SpringBootTest
-@AutoConfigureMockMvc
 class BookControllerTest {
 
     @Autowired
-    private MockMvc mockMvc;
+  private BookController bookController;
+
+  @Autowired
+  private GlobalExceptionHandler globalExceptionHandler;
+
+  @Autowired
+  private Validator validator;
 
     @Test
     void shouldCreateBook() throws Exception {
@@ -29,11 +37,16 @@ class BookControllerTest {
                 }
                 """;
 
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(bookController)
+          .setControllerAdvice(globalExceptionHandler)
+          .setValidator(validator)
+          .build();
+
         mockMvc.perform(post("/api/books")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.title").value("Spring in Action"));
+            .contentType("application/json")
+            .content(requestBody))
+          .andExpect(status().isCreated())
+          .andExpect(jsonPath("$.title").value("Spring in Action"));
     }
 
     @Test
@@ -47,9 +60,14 @@ class BookControllerTest {
                 }
                 """;
 
+        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(bookController)
+          .setControllerAdvice(globalExceptionHandler)
+          .setValidator(validator)
+          .build();
+
         mockMvc.perform(post("/api/books")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(requestBody))
-                .andExpect(status().isBadRequest());
+            .contentType("application/json")
+            .content(requestBody))
+          .andExpect(status().isBadRequest());
     }
 }
